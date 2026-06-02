@@ -17,7 +17,7 @@ on:
 
 env:
   AWS_REGION: ${{ vars.AWS_REGION }}
-  BUCKET_NAME: cfn-templates-github-actions
+  BUCKET_NAME: cfn-ecs-templates
 
 jobs:
   # Local checks
@@ -35,8 +35,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/setup
-     # - name: lint_cfn
-     #   run: uvx cfn-lint cloudformation/environments/*.yaml cloudformation/environments/dev/*.yaml
+      - name: lint_cfn
+        run: uvx cfn-lint cfn-templates/*.yaml cfn-templates/stacks/*.yaml
 
       - name: lint_app
         run: uvx ruff check .
@@ -51,4 +51,28 @@ jobs:
       - uses: ./.github/actions/setup
       - run: uvx ruff format --check .
 
+  # create S3 buckets for templates
+  create_bucket:
+    name: create bucket
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Deploy bucket stack
+        run: |
+          aws cloudformation deploy \
+           --stack-name cfn-template-bucket \
+           --template-file cfn-templates/bucket.yaml \
+           --region $AWS_REGION \
+           --capabilities CAPABILITY_NAMED_IAM
+
   # deploy to AWS
+
