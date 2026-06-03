@@ -26,7 +26,7 @@ jobs:
       - uses: ./.github/actions/setup
       - run: uv lock --locked
 
-  linting:
+  lint:
     runs-on: ubuntu-latest
     needs: [ lock_file ]
     steps:
@@ -39,7 +39,7 @@ jobs:
         run: uvx ruff check .
 
   formatting:
-    name: format sources
+    name: format
     runs-on: ubuntu-latest
     needs:
       - lock_file
