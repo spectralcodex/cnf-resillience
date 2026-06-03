@@ -10,12 +10,25 @@ Description: This template deploys a VPC, with a pair of public and private subn
   Finally, it deploys a pair of example ECS services from containers published in 
   Amazon EC2 Container Registry (Amazon ECR).
   
+Parameters:
+  TemplateUrlBase:
+    Type: String
+    Default: 'https://cfn-deployment-template.s3.eu-west-2.amazonaws.com/templates'
+
+  Environment:
+    Description: List of available environments
+    Type: String
+    AllowedValues:
+      - dev
+      - staging
+      - production
+    Default: dev
 
 Resources:
   VPC:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://cfn-deployment-template.s3.eu-west-2.amazonaws.com/templates/stacks/vpc.yaml
+      TemplateURL: !Sub ${TemplateUrlBase}/stacks/vpc.yaml
       Parameters:
         EnvironmentName: !Ref AWS::StackName
         VpcCIDR: 10.0.0.0/20
@@ -23,6 +36,10 @@ Resources:
         PublicSubnet2CIDR: 10.0.1.0/24
         PrivateSubnet1CIDR: 10.0.8.0/24
         PrivateSubnet2CIDR: 10.0.9.0/24
+        DeployToEnvironment: !Ref Environment
 
 
-
+Outputs:
+  VPC:
+    Description: VPC information
+    Value: !Ref VPC

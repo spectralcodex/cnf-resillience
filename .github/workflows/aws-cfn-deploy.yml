@@ -1,9 +1,6 @@
 name: Deploy
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
     inputs:
       environment:
@@ -119,4 +116,40 @@ jobs:
       - name: Validate all templates
         run: |
           aws cloudformation validate-template \
-           --template-url https://cfn-deployment-template.s3.eu-west-2.amazonaws.com/templates/master.yaml
+           --template-url https://${BUCKET_NAME}.s3.${AWS_REGION}.amazonaws.com/templates/master.yaml
+
+  deploy:
+    name: Deploy Stacks
+    needs:
+      - create_bucket
+      - copy_template
+      - validate_templates
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        env: [ dev ]
+    environment:
+      name: ${{ matrix.env }}
+      url: https://console.aws.amazon.com/cloudformation/home?region=eu-west-2
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Deploy CloudFormation Stack
+        run: |
+          echo "Deploying to ${{ matrix.env }}..."
+          aws cloudformation create-stack \
+            --template-url https://${BUCKET_NAME}.s3.${AWS_REGION}.amazonaws.com/templates/master.yaml \
+            --stack-name Deploy${{ matrix.env }}Stack \
+            --parameters ParameterKey=Environment,ParameterValue=${{ matrix.env }} \
+            --capabilities CAPABILITY_NAMED_IAM
+
+      - name: Wait for Stack Completion
+        run: |
+          aws cloudformation wait stack-create-complete --stack-name Deploy${{ matrix.env }}Stack

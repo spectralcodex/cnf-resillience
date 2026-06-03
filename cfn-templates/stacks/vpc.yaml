@@ -10,6 +10,10 @@ Parameters:
     Description: An environment name that will be prefixed to resource names
     Type: String
 
+  DeployToEnvironment:
+    Description: An environment name used to tag resources to specify the deployment type
+    Type: String
+
   VpcCIDR:
     Description: Please enter the IP range (CIDR notation) for this VPC
     Type: String
@@ -46,6 +50,9 @@ Resources:
         - Key: Name
           Value: !Sub ${EnvironmentName}-Vpc
 
+        - Key: Environment
+          Value: !Ref DeployToEnvironment
+
   PublicSubnet1:
     Type: AWS::EC2::Subnet
     Properties:
@@ -73,6 +80,8 @@ Resources:
         - Key: Name
           Value: !Sub ${EnvironmentName}-public-subnet-AZ2
 
+        - Key: Environment
+          Value: !Sub DeployEnvironment
 
   PrivateSubnet1:
     Type: AWS::EC2::Subnet
@@ -108,6 +117,9 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub ${EnvironmentName}-Igw
+
+        - Key: Environment
+          Value: !Ref DeployToEnvironment
 
 
   InternetGatewayAttachment:
