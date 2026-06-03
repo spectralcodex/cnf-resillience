@@ -17,7 +17,7 @@ on:
 
 env:
   AWS_REGION: ${{ vars.AWS_REGION }}
-  BUCKET_NAME: cfn-ecs-templates
+  BUCKET_NAME: cfn-deployment-template
 
 jobs:
   # Local checks
@@ -31,7 +31,7 @@ jobs:
 
   linting:
     runs-on: ubuntu-latest
-    needs: [lock_file]
+    needs: [ lock_file ]
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/setup
@@ -77,5 +77,46 @@ jobs:
            --region $AWS_REGION \
            --capabilities CAPABILITY_NAMED_IAM
 
-  # deploy to AWS
 
+  copy_template:
+    needs: [ create_bucket ]
+    name: upload templates
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Copy templates to S3
+        run: |
+          aws s3 cp cfn-templates/ s3://${BUCKET_NAME}/templates/ --recursive
+
+
+  validate_templates:
+    name: validate templates
+    needs:
+      - create_bucket
+      - copy_template
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Validate all templates
+        run: |
+          aws cloudformation validate-template \
+           --template-url https://cfn-deployment-template.s3.eu-west-2.amazonaws.com/templates/*.yaml

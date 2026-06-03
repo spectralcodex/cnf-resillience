@@ -35,3 +35,9 @@ Resources:
             Resource:
               - !Sub arn:${AWS::Partition}:s3:::${S3BucketName}/*
               - !Sub arn:${AWS::Partition}:s3:::${S3BucketName}
+
+
+Outputs:
+  TemplateBucket:
+    Value: !Ref S3BucketName
+    Description: Name of the sample Amazon S3 bucket with a notification configuration.

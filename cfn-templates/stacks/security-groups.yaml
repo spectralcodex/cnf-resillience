@@ -1,5 +1,6 @@
-Description: >
-  This template contains the security groups required by our entire stack.
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: This template contains the security groups required by our entire stack.
   We create them in a seperate nested template, so they can be referenced
   by all of the other nested templates.
 
@@ -15,7 +16,7 @@ Parameters:
 
 Resources:
   # This security group defines who/where is allowed to access the ECS hosts directly.
-  # By default we're just allowing access from the load balancer.  If you want to SSH
+  # By default, we're just allowing access from the load balancer.  If you want to SSH
   # into the hosts, or expose non-load balanced services you can open their ports here.
   ECSHostSecurityGroup:
     Type: AWS::EC2::SecurityGroup
