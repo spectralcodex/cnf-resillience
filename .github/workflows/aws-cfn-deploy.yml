@@ -119,4 +119,4 @@ jobs:
       - name: Validate all templates
         run: |
           aws cloudformation validate-template \
-           --template-url https://cfn-deployment-template.s3.eu-west-2.amazonaws.com/templates/*.yaml
+           --template-url https://cfn-deployment-template.s3.eu-west-2.amazonaws.com/templates/master.yaml

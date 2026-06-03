@@ -44,7 +44,7 @@ Resources:
       EnableDnsHostnames: true
       Tags:
         - Key: Name
-          Value: !Sub "${EnvironmentName}-Vpc"
+          Value: !Sub ${EnvironmentName}-Vpc
 
   PublicSubnet1:
     Type: AWS::EC2::Subnet
@@ -57,7 +57,7 @@ Resources:
         - Fn::GetAZs: !Ref 'AWS::Region'
       Tags:
         - Key: Name
-          Value: !Sub "${EnvironmentName}-public-subnet-AZ1"
+          Value: !Sub ${EnvironmentName}-public-subnet-AZ1
 
 
   PublicSubnet2:
@@ -71,7 +71,7 @@ Resources:
         - Fn::GetAZs: !Ref 'AWS::Region'
       Tags:
         - Key: Name
-          Value: !Sub "${EnvironmentName}-public-subnet-AZ2"
+          Value: !Sub ${EnvironmentName}-public-subnet-AZ2
 
 
   PrivateSubnet1:
@@ -85,7 +85,7 @@ Resources:
         - Fn::GetAZs: !Ref 'AWS::Region'
       Tags:
         - Key: Name
-          Value: !Sub "${EnvironmentName}-private-subnet-AZ1"
+          Value: !Sub ${EnvironmentName}-private-subnet-AZ1
 
 
   PrivateSubnet2:
@@ -99,7 +99,7 @@ Resources:
         - Fn::GetAZs: !Ref 'AWS::Region'
       Tags:
         - Key: Name
-          Value: !Sub "${EnvironmentName}-private-subnet-AZ2"
+          Value: !Sub ${EnvironmentName}-private-subnet-AZ2
 
 
   InternetGateway:
@@ -107,7 +107,7 @@ Resources:
     Properties:
       Tags:
         - Key: Name
-          Value: !Sub "${EnvironmentName}-Igw"
+          Value: !Sub ${EnvironmentName}-Igw
 
 
   InternetGatewayAttachment:
