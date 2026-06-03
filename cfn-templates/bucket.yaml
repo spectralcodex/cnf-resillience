@@ -1,23 +1,23 @@
-Description: > 
-  CFN for creating an S3 bucket for nested stack templates and
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: CFN for creating an S3 bucket for nested stack templates and
   applying a policy for access from CloudFormation and EC2 instances
 
 Parameters:
   S3BucketName:
     Type: String
-    Default: cfn-ecs-templates
+    Default: cfn-deployment-template
 
 Resources:
-  PipelineArtifactS3Bucket:
+  ArtifactS3Bucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName:
-        Ref: S3BucketName
+      BucketName: !Ref S3BucketName
 
-  PipelineArtifactS3BucketPolicy:
+  ArtifactS3BucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket: !Ref PipelineArtifactS3Bucket
+      Bucket: !Ref ArtifactS3Bucket
       PolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -32,6 +32,6 @@ Resources:
               - s3:GetObjectVersion
               - s3:PutObject
               - s3:ListBucket
-            Resource: 
+            Resource:
               - !Sub arn:${AWS::Partition}:s3:::${S3BucketName}/*
               - !Sub arn:${AWS::Partition}:s3:::${S3BucketName}

@@ -54,7 +54,9 @@ jobs:
   # create S3 buckets for templates
   create_bucket:
     name: create bucket
-    needs: [formatting]
+    needs:
+      - formatting
+      - linting
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
