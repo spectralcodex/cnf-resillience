@@ -19,7 +19,7 @@ env:
 jobs:
   # Local checks
   lock_file:
-    name: lock packages
+    name: lock
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
