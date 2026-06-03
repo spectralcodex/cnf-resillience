@@ -80,8 +80,6 @@ Resources:
         - Key: Name
           Value: !Sub ${EnvironmentName}-public-subnet-AZ2
 
-        - Key: Environment
-          Value: !Sub DeployEnvironment
 
   PrivateSubnet1:
     Type: AWS::EC2::Subnet
