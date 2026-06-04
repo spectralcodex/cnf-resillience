@@ -121,7 +121,7 @@ jobs:
       - name: Validate all templates
         run: |
           aws cloudformation validate-template \
-           --template-url https://${BUCKET_NAME}.s3.${AWS_REGION}.amazonaws.com/templates/master.yaml
+           --template-url https://${{ env.BUCKET_NAME }}.s3.${{ env.AWS_REGION }}.amazonaws.com/templates/master.yaml
 
   deploy:
     #if: github.ref == 'refs/heads/main'
@@ -151,7 +151,7 @@ jobs:
         uses: aws-actions/aws-cloudformation-github-deploy@v2.0.0
         with:
           name: Deploy${{ matrix.env }}Stack
-          template: https://${{ needs.validate_templates.outputs.bucket-name}}.s3.${{ env.AWS_REGION }}.amazonaws.com/templates/master.yaml
+          template: https://${{ env.BUCKET_NAME }}.s3.${{ env.AWS_REGION }}.amazonaws.com/templates/master.yaml
           #template: https://cfn-deployment-template.s3.eu-west-2.amazonaws.com/templates/master.yaml
 
           parameter-overrides: Environment=${{ matrix.env }}
