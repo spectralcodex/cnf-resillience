@@ -44,7 +44,7 @@ Resources:
         # Allow access from anywhere to our ECS services
         - CidrIp: 0.0.0.0/0
           IpProtocol: TCP
-          FromPort: 3000
+          FromPort: 5000
       Tags:
         - Key: Name
           Value: !Sub ${EnvironmentName}-LoadBalancers

@@ -38,8 +38,28 @@ Resources:
         PrivateSubnet2CIDR: 10.0.9.0/24
         DeployToEnvironment: !Ref Environment
 
+  SecurityGroups:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub ${TemplateUrlBase}/stacks/security-groups.yaml
+      Parameters:
+        EnvironmentName: !Ref AWS::StackName
+        VPC: !GetAtt VPC.Outputs.VPC
+
+  ALB:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub ${TemplateUrlBase}/stacks/load-balancer.yaml
+      Parameters:
+        VPC: !GetAtt VPC.Outputs.VPC
+        SecurityGroup: !GetAttr SecurityGroups.Outputs.LoadBalancerSecurityGroup
+        Subnets: !GetAtt VPC.Outputs.PublicSubnets
 
 Outputs:
   VPC:
     Description: VPC information
     Value: !Ref VPC
+
+  ELB:
+    Description: Load Balance Information
+    Value: !Ref ALB
