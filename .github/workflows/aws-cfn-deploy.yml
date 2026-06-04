@@ -150,7 +150,9 @@ jobs:
         uses: aws-actions/aws-cloudformation-github-deploy@v2.0.0
         with:
           name: Deploy${{ matrix.env }}Stack
-          template: https://${BUCKET_NAME}.s3.${AWS_REGION}.amazonaws.com/templates/master.yaml
+          #template: https://${BUCKET_NAME}.s3.${AWS_REGION}.amazonaws.com/templates/master.yaml
+          template: https://cfn-deployment-template.s3.eu-west-2.amazonaws.com/templates/master.yaml
+
           parameter-overrides: Environment=${{ matrix.env }}
           fail-on-empty-changeset: false
 
