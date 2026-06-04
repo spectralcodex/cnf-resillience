@@ -17,7 +17,7 @@ Parameters:
 Resources:
   # This security group defines who/where is allowed to access the ECS hosts directly.
   # By default, we're just allowing access from the load balancer.  If you want to SSH
-  # into the hosts, or expose non-load balanced services you can open their ports here.
+  # into the hosts, or expose non-load balanced services you can open their ports here!.
   ECSHostSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
