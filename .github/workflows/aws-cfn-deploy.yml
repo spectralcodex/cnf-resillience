@@ -75,7 +75,7 @@ jobs:
           aws cloudformation deploy \
            --stack-name cfn-template-bucket \
            --template-file cfn-templates/bucket.yaml \
-           --region $AWS_REGION \
+           --region ${{ env.AWS_REGION }} \
            --capabilities CAPABILITY_NAMED_IAM
 
 
@@ -97,7 +97,7 @@ jobs:
 
       - name: Copy templates to S3
         run: |
-          aws s3 cp cfn-templates/ s3://${BUCKET_NAME}/templates/ --recursive
+          aws s3 cp cfn-templates/ s3://${{ env.BUCKET_NAME }}/templates/ --recursive
 
 
   validate_templates:
@@ -107,7 +107,7 @@ jobs:
       - copy_template
     runs-on: ubuntu-latest
     outputs:
-      bucket-name: ${BUCKET_NAME}
+      bucket-name: ${{ env.AWS_REGION }}
     steps:
       - uses: actions/checkout@v3
 
@@ -152,7 +152,6 @@ jobs:
         with:
           name: Deploy${{ matrix.env }}Stack
           template: https://${{ env.BUCKET_NAME }}.s3.${{ env.AWS_REGION }}.amazonaws.com/templates/master.yaml
-          #template: https://cfn-deployment-template.s3.eu-west-2.amazonaws.com/templates/master.yaml
 
           parameter-overrides: Environment=${{ matrix.env }}
           fail-on-empty-changeset: false
