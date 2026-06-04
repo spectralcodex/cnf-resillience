@@ -51,6 +51,7 @@ Resources:
     Properties:
       TemplateURL: !Sub ${TemplateUrlBase}/stacks/load-balancer.yaml
       Parameters:
+        EnvironmentName: !Ref AWS::StackName
         VPC: !GetAtt VPC.Outputs.VPC
         Subnets: !GetAtt VPC.Outputs.PublicSubnets
         SecurityGroup: !GetAtt SecurityGroups.Outputs.LoadBalancerSecurityGroup
