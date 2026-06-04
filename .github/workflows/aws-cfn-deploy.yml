@@ -123,7 +123,7 @@ jobs:
            --template-url https://${BUCKET_NAME}.s3.${AWS_REGION}.amazonaws.com/templates/master.yaml
 
   deploy:
-    if: github.ref == 'refs/heads/main'
+    #if: github.ref == 'refs/heads/main'
     name: Deploy Stacks
     needs:
       - create_bucket
@@ -147,13 +147,12 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Deploy CloudFormation Stack
-        run: |
-          echo "Deploying to ${{ matrix.env }}..."
-          aws cloudformation create-stack \
-            --template-url https://${BUCKET_NAME}.s3.${AWS_REGION}.amazonaws.com/templates/master.yaml \
-            --stack-name Deploy${{ matrix.env }}Stack \
-            --parameters ParameterKey=Environment,ParameterValue=${{ matrix.env }} \
-            --capabilities CAPABILITY_NAMED_IAM
+        uses: aws-actions/aws-cloudformation-github-deploy@v2.0.0
+        with:
+          name: Deploy${{ matrix.env }}Stack
+          template: https://${BUCKET_NAME}.s3.${AWS_REGION}.amazonaws.com/templates/master.yaml
+          parameter-overrides: Environment=${{ matrix.env }}
+          fail-on-empty-changeset: false
 
       - name: Wait for Stack Completion
         run: |
