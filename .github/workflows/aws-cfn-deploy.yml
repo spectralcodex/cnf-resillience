@@ -54,6 +54,7 @@ jobs:
 
   # create S3 buckets for templates
   create_bucket:
+    if: github.ref == 'refs/heads/main'
     name: create bucket
     needs:
       - formatting
@@ -123,7 +124,7 @@ jobs:
            --template-url https://${BUCKET_NAME}.s3.${AWS_REGION}.amazonaws.com/templates/master.yaml
 
   deploy:
-    if: github.ref == 'refs/heads/main'
+
     name: Deploy Stacks
     needs:
       - create_bucket
