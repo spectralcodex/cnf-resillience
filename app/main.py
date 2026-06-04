@@ -10,5 +10,3 @@ async def root():
     return JSONResponse(
         content=jsonable_encoder({"message": "Hello Bigger Applications!"})
     )
-
-
