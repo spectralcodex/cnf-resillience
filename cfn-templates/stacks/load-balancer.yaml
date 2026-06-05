@@ -41,8 +41,6 @@ Resources:
         - Type: forward
           TargetGroupArn: !Ref DefaultTargetGroup
 
-        - Type: forward
-          TargetGroupArn: !Ref ContainerTargetGroup
 
 
   # We define a default target group here, as this is a mandatory Parameters

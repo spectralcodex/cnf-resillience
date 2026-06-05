@@ -54,7 +54,7 @@ Resources:
         EnvironmentName: !Ref AWS::StackName
         VPC: !GetAtt VPC.Outputs.VPC
         Subnets: !GetAtt VPC.Outputs.PublicSubnets
-        SecurityGroup: !GetAtt SecurityGroups.Outputs.LoadBalancerSecurityGroup.GroupId
+        SecurityGroup: !GetAtt SecurityGroups.Outputs.LoadBalancerSecurityGroup
 
 
   ECS:
