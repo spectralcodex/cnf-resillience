@@ -73,7 +73,7 @@ Resources:
       Name: !Sub tg-${EnvironmentName}-alb-http-3000
       VpcId: !Ref VPC
       Port: 3000
-      Protocol: TCP
+      Protocol: HTTP
       TargetType: instance
       HealthCheckPath: /
 
