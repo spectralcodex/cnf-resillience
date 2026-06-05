@@ -56,65 +56,6 @@ Resources:
     Type: AWS::EC2::LaunchTemplate
     #DeletionPolicy: Retain
     #UpdateReplacePolicy: Retain
-    Metadata:
-      comment: Install and configure ecs and httpd service
-      AWS::CloudFormation::Init:
-        config:
-          packages:
-            yum:
-              httpd: []
-              collectd: []
-          files:
-            /var/www/html/index.html:
-              content: |
-                <!DOCTYPE html>
-                <html>
-                <head><title>Hello World</title></head>
-                <body><h1>Hello World from CloudFormation cfn-init!</h1></body>
-                </html>
-              mode: '000644'
-              owner: root
-              group: root
-
-
-            /etc/cfn/cfn-hup.conf:
-              mode: 000400
-              owner: root
-              group: root
-              content: !Sub |
-                [main]
-                stack=${AWS::StackId}
-                region=${AWS::Region}
-
-            /etc/cfn/hooks.d/cfn-auto-reloader.conf:
-              mode: 000400 # Kept secure alongside main config
-              owner: root
-              group: root
-              content: !Sub |
-                [cfn-auto-reloader-hook]
-                triggers=post.update
-                path=Resources.ECSLaunchTemplateConfig.Metadata.AWS::CloudFormation::Init
-                action=/opt/aws/bin/cfn-init -v --region ${AWS::Region} --stack ${AWS::StackId} --resource ECSLaunchTemplateConfig
-          commands:
-            01_add_instance_to_cluster:
-              command: !Sub echo ECS_CLUSTER=${ECSCluster} >> /etc/ecs/ecs.config
-            02_enable_cloudwatch_agent:
-              command: !Sub /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c ssm:${ECSCloudWatchParameter} -s
-
-          services:
-            sysvinit:
-              httpd:
-                enabled: true
-                ensureRunning: true
-              collectd:
-                enabled: true
-                ensureRunning: true
-              cfn-hup:
-                enabled: true
-                ensureRunning: true
-                files:
-                  - /etc/cfn/cfn-hup.conf
-                  - /etc/cfn/hooks.d/cfn-auto-reloader.conf
     Properties:
       LaunchTemplateName: !Sub ${EnvironmentName}-launch-template
       LaunchTemplateData:
@@ -129,26 +70,23 @@ Resources:
           "Fn::Base64": !Sub |
             #!/bin/bash
             set -e
+            #!/bin/bash
+            # Use this for your user data (script from top to bottom)
+            # install httpd (Linux 2 version)
+            yum update -y
+            curl -O https://s3.us-west-2.amazonaws.com/amazon-ecs-agent-us-west-2/amazon-ecs-init-latest.x86_64.rpm
+            yum localinstall -y amazon-ecs-init-latest.x86_64.rpm
+            yum install -y docker
+            yum install -y httpd
+            systemctl start docker
+            systemctl start httpd
+            systemctl start ecs
+            systemctl enable httpd
+            systemctl enable docker
+            systemctl enable ecs
+            echo "ECS_CLUSTER=${ECSCluster}" >> /etc/ecs/ecs.config
+            echo "<h1>Hello World from $(hostname -f)</h1>" > /var/www/html/index.html
             
-            # Get the latest CloudFormation package
-            yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm
-            yum install -y https://s3.amazonaws.com/amazoncloudwatch-agent/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm
-            yum install -y aws-cfn-bootstrap hibagent 
-            
-            # Execute cfn-init
-            /opt/aws/bin/cfn-init -v \
-              --stack ${AWS::StackName} \
-              --resource ECSLaunchTemplateConfig \
-              --region ${AWS::Region}
-
-            # Signal back to CloudFormation
-            /opt/aws/bin/cfn-signal -e $? \
-              --stack ${AWS::StackName} \
-              --resource ECSAutoScalingGroup \
-              --region ${AWS::Region}
-
-    
-
 
   ECSAutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
