@@ -37,7 +37,7 @@ Parameters:
   LatestAmiId:
     Description: ECS-Optimized AMI ID
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
-    Default: /aws/service/ecs/optimized-ami/amazon-linux-2/recommended/image_id
+    Default: /aws/service/ecs/optimized-ami/amazon-linux-2023/recommended/image_id
 
   InstanceTargetGroupArn:
     Description: LoadBalancer Target Group for instance
