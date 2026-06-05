@@ -68,6 +68,7 @@ Resources:
         Subnets: !GetAtt VPC.Outputs.PrivateSubnets
         InstanceTargetGroupArn: !GetAtt ALB.Outputs.InstanceTargetGroupArn
         ContainerTargetGroupArn: !GetAtt ALB.Outputs.ContainerTargetGroupArn
+        LatestAmiId: ami-0150189e4c09ffab5
 
 
 
