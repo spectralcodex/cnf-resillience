@@ -20,37 +20,39 @@ Parameters:
     Type: AWS::EC2::SecurityGroup::Id
 
 Resources:
-  LoadBalancer:
+  ApplicationLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
       Name: !Sub ${EnvironmentName}-alb
       Subnets: !Ref Subnets
       SecurityGroups:
         - !Ref SecurityGroup
-      Tags:
-        - Key: Name
-          Value: !Ref EnvironmentName
+
 
   LoadBalancerListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
-      LoadBalancerArn: !Ref LoadBalancer
+      LoadBalancerArn: !Ref ApplicationLoadBalancer
       Port: 80
       Protocol: HTTP
       DefaultActions:
         - Type: forward
           TargetGroupArn: !Ref DefaultTargetGroup
 
-  ListenerPort3000:
-    Type: AWS::ElasticLoadBalancingV2::Listener
+  # Listener Rule to route specific traffic (e.g., /api*) to Port 3000 Target Group
+  ApiListenerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
     Properties:
-      LoadBalancerArn: !Ref LoadBalancer
-      Port: 3000
-      Protocol: TCP
-      DefaultActions:
+      ListenerArn: !Ref LoadBalancerListener
+      Priority: 10
+      Conditions:
+        - Field: path-pattern
+          PathPatternConfig:
+            Values:
+              - '/api*'
+      Actions:
         - Type: forward
           TargetGroupArn: !Ref ContainerTargetGroup
-
 
   # We define a default target group here, as this is a mandatory Parameters
   # when creating an Application Load Balancer Listener. This is not used, instead
@@ -58,26 +60,28 @@ Resources:
   DefaultTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      Name: !Sub ${EnvironmentName}-Instance
+      Name: !Sub tg-${EnvironmentName}-alb-http-80
       VpcId: !Ref VPC
       Port: 80
-      Protocol: TCP
+      Protocol: HTTP
       TargetType: instance
+      HealthCheckPath: /
 
   ContainerTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      Name: !Sub ${EnvironmentName}-Container
+      Name: !Sub tg-${EnvironmentName}-alb-http-3000
       VpcId: !Ref VPC
       Port: 3000
       Protocol: TCP
       TargetType: instance
+      HealthCheckPath: /
 
 
 Outputs:
   LoadBalancer:
     Description: A reference to the Application Load Balancer
-    Value: !Ref LoadBalancer
+    Value: !Ref ApplicationLoadBalancer
 
   #LoadBalancerName:
   #  Description: 'The name of the created Network Load Balancer'
@@ -85,7 +89,7 @@ Outputs:
 
   LoadBalancerUrl:
     Description: The URL of the ALB
-    Value: !GetAtt LoadBalancer.DNSName
+    Value: !GetAtt ApplicationLoadBalancer.DNSName
 
   Listener:
     Description: A reference to a port 80 listener

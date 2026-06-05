@@ -1,0 +1,140 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'ALB with an HTTP port 80 listener routing to two target groups based on paths, with locked-down security groups.'
+
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: 'Select the VPC where the resources will reside.'
+  Subnets:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: 'Select at least two public subnets for the Application Load Balancer.'
+
+Resources:
+  # 1. Security Group for the ALB (Open to the public internet)
+  AlbSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: 'Allow public HTTP traffic to the ALB'
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+
+  # 2. Application Load Balancer
+  ApplicationLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: my-application-load-balancer
+      Type: application
+      Scheme: internet-facing
+      Subnets: !Ref Subnets
+      SecurityGroups:
+        - !Ref AlbSecurityGroup
+
+  # 3. Target Group 1: HTTP on Port 80
+  HttpTargetGroup80:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: tg-alb-http-80
+      Protocol: HTTP
+      Port: 80
+      VpcId: !Ref VpcId
+      TargetType: instance
+      HealthCheckPath: /
+
+  # 4. Target Group 2: HTTP on Port 3000 (ALB requires HTTP/HTTPS protocols)
+  HttpTargetGroup3000:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: tg-alb-http-3000
+      Protocol: HTTP
+      Port: 3000
+      VpcId: !Ref VpcId
+      TargetType: instance
+      HealthCheckPath: /
+
+  # 5. ALB Listener on Port 80 (Defaults to the Port 80 Target Group)
+  AlbListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref ApplicationLoadBalancer
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref HttpTargetGroup80
+
+  # 6. Listener Rule to route specific traffic (e.g., /api*) to Port 3000 Target Group
+  ApiListenerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      ListenerArn: !Ref AlbListener
+      Priority: 10
+      Conditions:
+        - Field: path-pattern
+          PathPatternConfig:
+            Values:
+              - '/api*'
+      Actions:
+        - Type: forward
+          TargetGroupArn: !Ref HttpTargetGroup3000
+
+  # 7. Security Group for EC2 Instances (STRICTLY allows traffic ONLY from the ALB)
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: 'Isolate instances to only accept traffic from the ALB security group'
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourceSecurityGroupId: !Ref AlbSecurityGroup # <--- Locks port 80 to the ALB
+        - IpProtocol: tcp
+          FromPort: 3000
+          ToPort: 3000
+          SourceSecurityGroupId: !Ref AlbSecurityGroup # <--- Locks port 3000 to the ALB
+
+  # 8. Launch Template for EC2 Instances
+  InstanceLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: alb-app-launch-template
+      LaunchTemplateData:
+        ImageId: ami-0150189e4c09ffab5 # Replace with a valid AMI ID for your region
+        InstanceType: t3.micro
+        SecurityGroupIds:
+          - !Ref InstanceSecurityGroup
+
+  # 9. Auto Scaling Group linked to both Target Groups
+  AppAutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AutoScalingGroupName: my-alb-app-asg
+      MinSize: '2'
+      MaxSize: '5'
+      DesiredCapacity: '2'
+      VPCZoneIdentifier: !Ref Subnets
+      LaunchTemplate:
+        LaunchTemplateId: !Ref InstanceLaunchTemplate
+        Version: !GetAtt InstanceLaunchTemplate.LatestVersionNumber
+      TargetGroupARNs:
+        - !Ref HttpTargetGroup80
+        - !Ref HttpTargetGroup3000
+      HealthCheckType: ELB
+      HealthCheckGracePeriod: 300
+
+Outputs:
+  LoadBalancerName:
+    Description: 'The name of the created Application Load Balancer'
+    Value: !GetAtt ApplicationLoadBalancer.LoadBalancerName
+
+  HttpTargetGroup80Arn:
+    Description: 'The ARN of the HTTP Port 80 Target Group'
+    Value: !Ref HttpTargetGroup80
+
+  HttpTargetGroup3000Arn:
+    Description: 'The ARN of the HTTP Port 3000 Target Group'
+    Value: !Ref HttpTargetGroup3000

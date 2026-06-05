@@ -32,7 +32,7 @@ Parameters:
     Description: Choose which subnets this ECS cluster should be deployed to
     Type: List<AWS::EC2::Subnet::Id>
 
-  SecurityGroup:
+  InstanceSecurityGroup:
     Description: Select the Security Group to use for the ECS cluster hosts
     Type: AWS::EC2::SecurityGroup::Id
 
@@ -45,9 +45,11 @@ Parameters:
     Description: LoadBalancer Target Group for instance
     Type: String
 
-  LoadBalancerName:
-    Description: LoadBalancer name for the ECS and Autoscaling
+  ContainerTargetGroupArn:
+    Description: LoadBalancer Target Group for containers
     Type: String
+
+
 
 
 
@@ -61,7 +63,7 @@ Resources:
         InstanceType: !Ref InstanceType
         IamInstanceProfile: !Ref ECSInstanceProfile
         SecurityGroups:
-          - !Ref SecurityGroup
+          - !Ref InstanceSecurityGroup
         UserData:
           "Fn::Base64": !Sub |
             #!/bin/bash
@@ -146,6 +148,22 @@ Resources:
 
   ECSAutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AutoScalingGroupName: !Sub alb-${EnvironmentName}-asg
+      LaunchTemplate:
+        LaunchTemplateId: !Ref ECSLaunchTemplateConfig
+        Version: !GetAtt ECSLaunchTemplateConfig.LatestVersionNumber
+      MaxSize: !Ref ClusterSize
+      MinSize: !Ref ClusterSize
+      DesiredCapacity: !Ref ClusterSize
+      VPCZoneIdentifier: !Ref Subnets
+      TargetGroupARNs:
+        - !Ref InstanceTargetGroupArn
+        - !Ref ContainerTargetGroupArn
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} ECS host
+          PropagateAtLaunch: true
     CreationPolicy:
       ResourceSignal:
         Timeout: PT15M
@@ -162,22 +180,7 @@ Resources:
           - AlarmNotification
           - ScheduledActions
         WaitOnResourceSignals: true
-    Properties:
-      LaunchTemplate:
-        LaunchTemplateId: !Ref ECSLaunchTemplateConfig
-        Version: !GetAtt ECSLaunchTemplateConfig.LatestVersionNumber
-      MaxSize: !Ref ClusterSize
-      MinSize: !Ref ClusterSize
-      DesiredCapacity: !Ref ClusterSize
-      VPCZoneIdentifier: !Ref Subnets
-      TargetGroupARNs:
-        - !Ref InstanceTargetGroupArn
-      LoadBalancerNames:
-        - !Ref LoadBalancerName
-      Tags:
-        - Key: Name
-          Value: !Sub ${EnvironmentName} ECS host
-          PropagateAtLaunch: true
+
 
   ECSCluster:
     Type: AWS::ECS::Cluster

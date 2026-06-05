@@ -56,8 +56,21 @@ Resources:
         Subnets: !GetAtt VPC.Outputs.PublicSubnets
         SecurityGroup: !GetAtt SecurityGroups.Outputs.LoadBalancerSecurityGroup
 
+  ECS:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub ${TemplateUrlBase}/stacks/ecs-cluster.yaml
+      Parameters:
+        EnvironmentName: !Ref AWS::StackName
+        # InstanceType: t3.small
+        # ClusterSize: 1
+        VPC: !GetAtt VPC.Outputs.VPC
+        InstanceSecurityGroup: !GetAtt SecurityGroups.Outputs.ECSHostSecurityGroup
+        Subnets: !GetAtt VPC.Outputs.PrivateSubnets
+        InstanceTargetGroupArn: !GetAtt ALB.Outputs.InstanceTargetGroupArn
+        LoadBalancerName: !GetAtt ALB.Outputs.LoadBalancer
 
- 
+
 
 Outputs:
   VPC:
