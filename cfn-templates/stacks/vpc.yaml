@@ -51,7 +51,7 @@ Resources:
           Value: !Sub ${EnvironmentName}-Vpc
 
         - Key: Environment
-          Value: !Ref EnvironmentName
+          Value: !Sub ${EnvironmentName}
 
   PublicSubnet1:
     Type: AWS::EC2::Subnet
