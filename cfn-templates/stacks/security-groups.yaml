@@ -42,16 +42,14 @@ Resources:
       GroupDescription: Access to the load balancer that sits in front of ECS
       SecurityGroupIngress:
         # Allow access from anywhere to our ECS services
-        - CidrIp: 0.0.0.0/0
-          IpProtocol: TCP
+        - IpProtocol: TCP
+          CidrIp: 0.0.0.0/0
           FromPort: 80
-
-        - CidrIp: 0.0.0.0/0
-          IpProtocol: TCP
+        - IpProtocol: TCP
+          CidrIp: 0.0.0.0/0
           FromPort: 443
-
-        - CidrIp: 0.0.0.0/0
-          IpProtocol: TCP
+        - IpProtocol: TCP
+          CidrIp: 0.0.0.0/0
           FromPort: 5000
       Tags:
         - Key: Name
