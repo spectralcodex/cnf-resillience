@@ -29,7 +29,7 @@ Resources:
         - !Ref SecurityGroup
       Tags:
         - Key: Name
-          Value: !Sub ${EnvironmentName}-alb
+          Value: !Ref EnvironmentName
 
   LoadBalancerListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
