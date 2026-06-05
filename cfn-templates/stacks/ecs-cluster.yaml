@@ -61,6 +61,10 @@ Resources:
       LaunchTemplateData:
         ImageId: !Ref LatestAmiId
         InstanceType: !Ref InstanceType
+        # HERE: Prevent public IP assignment and define interface settings
+        NetworkInterfaces:
+          - DeviceIndex: 0
+            AssociatePublicIpAddress: false # <--- Locks out public IPs entirely
         # HERE: Binding the Instance Profile to every EC2 instance launched
         IamInstanceProfile:
             Arn: !GetAtt ECSInstanceProfile.Arn
