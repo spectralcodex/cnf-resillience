@@ -54,8 +54,8 @@ Parameters:
 Resources:
   ECSLaunchTemplateConfig:
     Type: AWS::EC2::LaunchTemplate
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
+    #DeletionPolicy: Retain
+    #UpdateReplacePolicy: Retain
     Metadata:
       comment: Install and configure ecs and httpd service
       AWS::CloudFormation::Init:
@@ -152,6 +152,7 @@ Resources:
 
   ECSAutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
+    DependsOn: ECSCluster
     Properties:
       AutoScalingGroupName: !Sub alb-${EnvironmentName}-asg
       LaunchTemplate:
@@ -164,26 +165,9 @@ Resources:
       TargetGroupARNs:
         - !Ref InstanceTargetGroupArn
         - !Ref ContainerTargetGroupArn
-      Tags:
-        - Key: Name
-          Value: !Sub ${EnvironmentName} ECS host
-          PropagateAtLaunch: true
-    CreationPolicy:
-      ResourceSignal:
-        Timeout: PT15M
-        Count: 1
-    UpdatePolicy:
-      AutoScalingRollingUpdate:
-        MinInstancesInService: 1
-        MaxBatchSize: 1
-        PauseTime: PT15M
-        SuspendProcesses:
-          - HealthCheck
-          - ReplaceUnhealthy
-          - AZRebalance
-          - AlarmNotification
-          - ScheduledActions
-        WaitOnResourceSignals: true
+      HealthCheckType: ELB
+      HealthCheckGracePeriod: 300
+
 
 
   ECSCluster:

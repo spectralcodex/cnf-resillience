@@ -105,6 +105,10 @@ Resources:
       LaunchTemplateData:
         ImageId: ami-0150189e4c09ffab5 # Replace with a valid AMI ID for your region
         InstanceType: t3.micro
+        # HERE: Prevent public IP assignment and define interface settings
+        NetworkInterfaces:
+          - DeviceIndex: 0
+            AssociatePublicIpAddress: false # <--- Locks out public IPs entirely
         SecurityGroupIds:
           - !Ref InstanceSecurityGroup
 
