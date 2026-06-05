@@ -43,11 +43,7 @@ Resources:
       SecurityGroupIngress:
         # Allow access from anywhere to our ECS services
         - CidrIp: 0.0.0.0/0
-          IpProtocol: tcp
-          FromPort: 3000
-          ToPort: 3000
-        - CidrIp: 0.0.0.0/0
-          IpProtocol: http
+          IpProtocol: -1
       Tags:
         - Key: Name
           Value: !Sub ${EnvironmentName}-LoadBalancers
