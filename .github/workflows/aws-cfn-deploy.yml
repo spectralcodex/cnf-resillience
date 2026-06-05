@@ -155,6 +155,8 @@ jobs:
 
           parameter-overrides: Environment=${{ matrix.env }}
           fail-on-empty-changeset: false
+          capabilities: CAPABILITY_NAMED_IAM
+
 
       - name: Wait for Stack Completion
         run: |
