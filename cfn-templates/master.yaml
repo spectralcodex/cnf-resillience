@@ -62,14 +62,12 @@ Resources:
       TemplateURL: !Sub ${TemplateUrlBase}/stacks/ecs-cluster.yaml
       Parameters:
         EnvironmentName: !Ref AWS::StackName
-        # InstanceType: t3.small
-        # ClusterSize: 1
-        VPC: !GetAtt VPC.Outputs.VPC
+        InstanceType: t3.small
+        ClusterSize: 1
         InstanceSecurityGroup: !GetAtt SecurityGroups.Outputs.ECSHostSecurityGroup
         Subnets: !GetAtt VPC.Outputs.PrivateSubnets
         InstanceTargetGroupArn: !GetAtt ALB.Outputs.InstanceTargetGroupArn
         ContainerTargetGroupArn: !GetAtt ALB.Outputs.ContainerTargetGroupArn
-        LoadBalancerName: !GetAtt ALB.Outputs.LoadBalancer
 
 
 
