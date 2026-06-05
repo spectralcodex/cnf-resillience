@@ -54,6 +54,67 @@ Parameters:
 Resources:
   ECSLaunchTemplateConfig:
     Type: AWS::EC2::LaunchTemplate
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Metadata:
+      comment: Install and configure ecs and httpd service
+      AWS::CloudFormation::Init:
+        config:
+          packages:
+            yum:
+              httpd: []
+              collectd: []
+          files:
+            /var/www/html/index.html:
+              content: |
+                <!DOCTYPE html>
+                <html>
+                <head><title>Hello World</title></head>
+                <body><h1>Hello World from CloudFormation cfn-init!</h1></body>
+                </html>
+              mode: '000644'
+              owner: root
+              group: root
+
+
+            /etc/cfn/cfn-hup.conf:
+              mode: 000400
+              owner: root
+              group: root
+              content: !Sub |
+                [main]
+                stack=${AWS::StackId}
+                region=${AWS::Region}
+
+            /etc/cfn/hooks.d/cfn-auto-reloader.conf:
+              mode: 000400 # Kept secure alongside main config
+              owner: root
+              group: root
+              content: !Sub |
+                [cfn-auto-reloader-hook]
+                triggers=post.update
+                path=Resources.ECSLaunchTemplateConfig.Metadata.AWS::CloudFormation::Init
+                action=/opt/aws/bin/cfn-init -v --region ${AWS::Region} --stack ${AWS::StackId} --resource ECSLaunchTemplateConfig
+          commands:
+            01_add_instance_to_cluster:
+              command: !Sub echo ECS_CLUSTER=${ECSCluster} >> /etc/ecs/ecs.config
+            02_enable_cloudwatch_agent:
+              command: !Sub /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c ssm:${ECSCloudWatchParameter} -s
+
+          services:
+            sysvinit:
+              httpd:
+                enabled: true
+                ensureRunning: true
+              collectd:
+                enabled: true
+                ensureRunning: true
+              cfn-hup:
+                enabled: true
+                ensureRunning: true
+                files:
+                  - /etc/cfn/cfn-hup.conf
+                  - /etc/cfn/hooks.d/cfn-auto-reloader.conf
     Properties:
       LaunchTemplateName: !Sub ${EnvironmentName}-launch-template
       LaunchTemplateData:
@@ -65,83 +126,26 @@ Resources:
         UserData:
           "Fn::Base64": !Sub |
             #!/bin/bash
-            #!/bin/bash -x
+            set -e
+            
             # Get the latest CloudFormation package
             yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm
             yum install -y https://s3.amazonaws.com/amazoncloudwatch-agent/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm
             yum install -y aws-cfn-bootstrap hibagent 
             
-            # Start cfn-init
-            /opt/aws/bin/cfn-init -v --region ${AWS::Region} --stack ${AWS::StackName} --resource ECSLaunchTemplateConfig
-            
-            # Get result of last command
-            INIT_STATUS=$?
-            
-            /opt/aws/bin/cfn-signal -e $INIT_STATUS --region ${AWS::Region} --stack ${AWS::StackName} --resource ECSAutoScalingGroup
-            /usr/bin/enable-ec2-spot-hibernation
-            
-            # exit the script
-            exit $INIT_STATUS
+            # Execute cfn-init
+            /opt/aws/bin/cfn-init -v \
+              --stack ${AWS::StackName} \
+              --resource ECSLaunchTemplateConfig \
+              --region ${AWS::Region}
 
-    Metadata:
-      comment: Install and configure ecs and httpd service
-      AWS::CloudFormation::Init:
-        ConfigSets:
-          ascending:
-            - config-ecs
-            - config-httpd
-        config-ecs:
-          packages:
-            yum:
-              collectd: [ ]
+            # Signal back to CloudFormation
+            /opt/aws/bin/cfn-signal -e $? \
+              --stack ${AWS::StackName} \
+              --resource ECSAutoScalingGroup \
+              --region ${AWS::Region}
 
-          commands:
-            01_add_instance_to_cluster:
-              command: !Sub echo ECS_CLUSTER=${ECSCluster} >> /etc/ecs/ecs.config
-            02_enable_cloudwatch_agent:
-              command: !Sub /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c ssm:${ECSCloudWatchParameter} -s
-          files:
-            /etc/cfn/cfn-hup.conf:
-              mode: 000400
-              owner: root
-              group: root
-              content: !Sub |
-                [main]
-                stack=${AWS::StackId}
-                region=${AWS::Region}
-
-            /etc/cfn/hooks.d/cfn-auto-reloader.conf:
-              content: !Sub |
-                [cfn-auto-reloader-hook]
-                triggers=post.update
-                path=Resources.ECSLaunchTemplateConfig.Metadata.AWS::CloudFormation::Init
-                action=/opt/aws/bin/cfn-init -v --region ${AWS::Region} --stack ${AWS::StackName} --resource ECSLaunchTemplateConfig
-        config-httpd:
-          packages:
-            yum:
-              httpd: [ ]
-          commands:
-            hello:
-              command: "echo 'hello world'"
-
-          files:
-            /var/www/html/index.html:
-              content: |
-                <h1>Hello World from EC2 instance!</h1>
-                <p>This was created using cfn-init</p>
-              mode: 000644
-
-          services:
-            sysvinit:
-              httpd:
-                enabled: 'true'
-                ensureRunning: 'true'
-              cfn-hup:
-                enabled: true
-                ensureRunning: true
-                files:
-                  - /etc/cfn/cfn-hup.conf
-                  - /etc/cfn/hooks.d/cfn-auto-reloader.conf
+    
 
 
   ECSAutoScalingGroup:
