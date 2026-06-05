@@ -41,7 +41,15 @@ Resources:
         - Type: forward
           TargetGroupArn: !Ref DefaultTargetGroup
 
-
+  ListenerPort3000:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref LoadBalancer
+      Port: 3000
+      Protocol: TCP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref ContainerTargetGroup
 
 
   # We define a default target group here, as this is a mandatory Parameters
@@ -53,16 +61,27 @@ Resources:
       Name: !Sub ${EnvironmentName}-Instance
       VpcId: !Ref VPC
       Port: 80
-      Protocol: HTTP
+      Protocol: TCP
+      TargetType: instance
+
+  ContainerTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub ${EnvironmentName}-Container
+      VpcId: !Ref VPC
+      Port: 3000
+      Protocol: TCP
+      TargetType: instance
+
 
 Outputs:
   LoadBalancer:
     Description: A reference to the Application Load Balancer
     Value: !Ref LoadBalancer
 
-  LoadBalancerName:
-    Description: A reference to the Application Load Balancer name
-    Value: !GetAtt LoadBalancer.LoadBalancerName
+  #LoadBalancerName:
+  #  Description: 'The name of the created Network Load Balancer'
+  #  Value: !GetAtt LoadBalancer.LoadBalancerName
 
   LoadBalancerUrl:
     Description: The URL of the ALB
@@ -72,6 +91,10 @@ Outputs:
     Description: A reference to a port 80 listener
     Value: !Ref LoadBalancerListener
 
-  InstanceTargetGroup:
-    Description: A Target group for container instance
-    Value: !GetAtt DefaultTargetGroup.TargetGroupArn
+  InstanceTargetGroupArn:
+    Description: A Target group for container instance arn
+    Value: !Ref DefaultTargetGroup
+
+  ContainerTargetGroupArn:
+    Description: A Target group for container instance arn
+    Value: !Ref ContainerTargetGroup
