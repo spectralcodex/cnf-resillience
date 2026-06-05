@@ -68,6 +68,7 @@ Resources:
         InstanceSecurityGroup: !GetAtt SecurityGroups.Outputs.ECSHostSecurityGroup
         Subnets: !GetAtt VPC.Outputs.PrivateSubnets
         InstanceTargetGroupArn: !GetAtt ALB.Outputs.InstanceTargetGroupArn
+        ContainerTargetGroupArn: !GetAtt ALB.Outputs.ContainerTargetGroupArn
         LoadBalancerName: !GetAtt ALB.Outputs.LoadBalancer
 
 

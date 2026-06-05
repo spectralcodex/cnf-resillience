@@ -6,9 +6,7 @@ Parameters:
     Description: An environment name that will be prefixed to resource names
     Type: String
 
-  DeployToEnvironment:
-    Description: An environment name used to tag resources to specify the deployment type
-    Type: String
+
 
   InstanceType:
     Description: Amazon EC2 instance type for the instances
@@ -190,8 +188,7 @@ Resources:
         - Key: Name
           Value: !Ref EnvironmentName
 
-        - Key: Environment
-          Value: !Ref DeployToEnvironment
+
 
 
 

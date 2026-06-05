@@ -102,3 +102,10 @@ Outputs:
   ContainerTargetGroupArn:
     Description: A Target group for container instance arn
     Value: !Ref ContainerTargetGroup
+
+    # Exporting the Port 5000 Target Group ARN so Stack B can find it
+  ContainerTargetGroupArnExport:
+      Description: 'The ARN of the TCP Port 5000 Target Group exported for other stacks'
+      Value: !Ref ContainerTargetGroup
+      Export:
+        Name: !Sub "${AWS::StackName}-ContainerTargetGroupArn"
