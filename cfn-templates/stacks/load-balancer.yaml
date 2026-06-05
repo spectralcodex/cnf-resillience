@@ -40,6 +40,8 @@ Resources:
       DefaultActions:
         - Type: forward
           TargetGroupArn: !Ref DefaultTargetGroup
+        - Type: forward
+          TargetGroupArn: !Ref ContainerTargetGroup
 
 
 
@@ -49,7 +51,7 @@ Resources:
   DefaultTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      Name: !Sub ${EnvironmentName}-default
+      Name: !Sub ${EnvironmentName}-Instance
       VpcId: !Ref VPC
       Port: 80
       Protocol: HTTP
@@ -57,10 +59,10 @@ Resources:
   ContainerTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      Name: !Sub ${EnvironmentName}-default
+      Name: !Sub ${EnvironmentName}-Container
       VpcId: !Ref VPC
       Port: 3000
-      Protocol: HTTP
+      Protocol: TCP
 
 
 
