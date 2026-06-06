@@ -62,14 +62,16 @@ Resources:
         ImageId: !Ref LatestAmiId
         InstanceType: !Ref InstanceType
         # HERE: Prevent public IP assignment and define interface settings
+          # CORRECTED: Security Group is only specified HERE inside the interface array
         NetworkInterfaces:
           - DeviceIndex: 0
-            AssociatePublicIpAddress: false # <--- Locks out public IPs entirely
-        # HERE: Binding the Instance Profile to every EC2 instance launched
+            AssociatePublicIpAddress: false
+            Groups:
+              - !Ref InstanceSecurityGroup
         IamInstanceProfile:
             Arn: !GetAtt ECSInstanceProfile.Arn
-        SecurityGroupIds:
-          - !Ref InstanceSecurityGroup
+        #SecurityGroupIds:
+         # - !Ref InstanceSecurityGroup
         UserData:
           "Fn::Base64": !Sub |
             #!/bin/bash
@@ -88,7 +90,6 @@ Resources:
             systemctl enable ecs
             echo "ECS_CLUSTER=${ECSCluster}" >> /etc/ecs/ecs.config
             echo "<h1>Hello World from $(hostname -f)</h1>" > /var/www/html/index.html
-            
 
   ECSAutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
