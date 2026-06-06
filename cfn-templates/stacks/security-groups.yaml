@@ -25,14 +25,9 @@ Resources:
       GroupDescription: Access to the ECS hosts and the tasks/containers that run on them
       SecurityGroupIngress:
         # Only allow inbound access to ECS from the ELB
-        - IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
+        - IpProtocol: http
           SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup # <--- Points directly to the ALB's SG
-        - IpProtocol: tcp
-          FromPort: 3000
-          ToPort: 3000
-          SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup
+
       Tags:
         - Key: Name
           Value: !Sub ${EnvironmentName}-ECS-Hosts
@@ -48,9 +43,7 @@ Resources:
       GroupDescription: Access to the load balancer that sits in front of ECS
       SecurityGroupIngress:
         # Allow access from anywhere to our ECS services
-        - IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
+        - IpProtocol: http
           CidrIp: 0.0.0.0/0
       Tags:
         - Key: Name

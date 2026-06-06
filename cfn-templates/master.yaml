@@ -46,28 +46,41 @@ Resources:
         EnvironmentName: !Ref AWS::StackName
         VPC: !GetAtt VPC.Outputs.VPC
 
-  ALB:
+  ASG:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: !Sub ${TemplateUrlBase}/stacks/load-balancer.yaml
+      TemplateURL: !Sub ${TemplateUrlBase}/stacks/asg.yaml
       Parameters:
         EnvironmentName: !Ref AWS::StackName
-        VPC: !GetAtt VPC.Outputs.VPC
-        Subnets: !GetAtt VPC.Outputs.PublicSubnets
-        SecurityGroup: !GetAtt SecurityGroups.Outputs.LoadBalancerSecurityGroup
-
-  ECS:
-    Type: AWS::CloudFormation::Stack
-    Properties:
-      TemplateURL: !Sub ${TemplateUrlBase}/stacks/ecs-cluster.yaml
-      Parameters:
-        EnvironmentName: !Ref AWS::StackName
+        VPC: VPC
         InstanceType: t3.small
         ClusterSize: 1
         InstanceSecurityGroup: !GetAtt SecurityGroups.Outputs.ECSHostSecurityGroup
         Subnets: !GetAtt VPC.Outputs.PrivateSubnets
-        InstanceTargetGroupArn: !GetAtt ALB.Outputs.InstanceTargetGroupArn
-        ContainerTargetGroupArn: !GetAtt ALB.Outputs.ContainerTargetGroupArn
+        #InstanceTargetGroupArn: !GetAtt ALB.Outputs.InstanceTargetGroupArn
+
+  #ALB:
+  #  Type: AWS::CloudFormation::Stack
+  #  Properties:
+  #    TemplateURL: !Sub ${TemplateUrlBase}/stacks/load-balancer.yaml
+  #    Parameters:
+  #      EnvironmentName: !Ref AWS::StackName
+  #      VPC: !GetAtt VPC.Outputs.VPC
+  #      Subnets: !GetAtt VPC.Outputs.PublicSubnets
+  #      SecurityGroup: !GetAtt SecurityGroups.Outputs.LoadBalancerSecurityGroup
+
+  #ECS:
+  #  Type: AWS::CloudFormation::Stack
+  #  Properties:
+  #    TemplateURL: !Sub ${TemplateUrlBase}/stacks/ecs-cluster.yaml
+  #    Parameters:
+  #      EnvironmentName: !Ref AWS::StackName
+  #      InstanceType: t3.small
+  #      ClusterSize: 1
+  #      InstanceSecurityGroup: !GetAtt SecurityGroups.Outputs.ECSHostSecurityGroup
+  #      Subnets: !GetAtt VPC.Outputs.PrivateSubnets
+  #      InstanceTargetGroupArn: !GetAtt ALB.Outputs.InstanceTargetGroupArn
+  #      ContainerTargetGroupArn: !GetAtt ALB.Outputs.ContainerTargetGroupArn
 
 
 
@@ -76,6 +89,6 @@ Outputs:
     Description: VPC information
     Value: !Ref VPC
 
-  ELB:
-    Description: Load Balance Information
-    Value: !Ref ALB
+  #ELB:
+  #  Description: Load Balance Information
+  #  Value: !Ref ALB

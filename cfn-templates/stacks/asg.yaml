@@ -1,0 +1,152 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: This template deploys an ECS cluster to the provided VPC and subnets using an Auto Scaling Group
+
+Parameters:
+  EnvironmentName:
+    Description: An environment name that will be prefixed to resource names
+    Type: String
+
+
+
+  InstanceType:
+    Description: Amazon EC2 instance type for the instances
+    Type: String
+    AllowedValues:
+      - t3.micro
+      - t3.small
+      - t3.medium
+    Default: t3.small
+
+  ClusterSize:
+    Description: How many ECS hosts do you want to initially deploy?
+    Type: Number
+    Default: 1
+
+  VPC:
+    Description: Choose which VPC this ECS cluster should be deployed to
+    Type: AWS::EC2::VPC::Id
+
+  Subnets:
+    Description: Choose which subnets this ECS cluster should be deployed to
+    Type: List<AWS::EC2::Subnet::Id>
+
+  InstanceSecurityGroup:
+    Description: Select the Security Group to use for the ECS cluster hosts
+    Type: AWS::EC2::SecurityGroup::Id
+
+  LatestAmiId:
+    Description: ECS-Optimized AMI ID
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ecs/optimized-ami/amazon-linux-2023/recommended/image_id
+
+  InstanceTargetGroupArn:
+    Description: LoadBalancer Target Group for instance
+    Type: String
+
+  #ContainerTargetGroupArn:
+  #  Description: LoadBalancer Target Group for containers
+  #  Type: String
+
+
+
+
+
+Resources:
+  ECSLaunchTemplateConfig:
+    Type: AWS::EC2::LaunchTemplate
+    #DeletionPolicy: Retain
+    #UpdateReplacePolicy: Retain
+    Properties:
+      LaunchTemplateName: !Sub ${EnvironmentName}-launch-template
+      LaunchTemplateData:
+        ImageId: !Ref LatestAmiId
+        InstanceType: !Ref InstanceType
+        # HERE: Prevent public IP assignment and define interface settings
+          # CORRECTED: Security Group is only specified HERE inside the interface array
+        #NetworkInterfaces:
+        #  - DeviceIndex: 0
+        #    AssociatePublicIpAddress: false
+        #    Groups:
+        #      - !Ref InstanceSecurityGroup
+
+        IamInstanceProfile:
+            Arn: !GetAtt ECSInstanceProfile.Arn
+        SecurityGroupIds:
+          - !Ref InstanceSecurityGroup
+        UserData:
+          "Fn::Base64": !Sub |
+            #!/bin/bash
+            # Use this for your user data (script from top to bottom)
+            # install httpd (Linux 2 version)
+            yum update -y
+            yum install -y httpd
+            systemctl start httpd
+            systemctl enable httpd
+            echo "<h1>Hello World from $(hostname -f) - ${EnvironmentName}</h1>" > /var/www/html/index.html
+
+  ECSAutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AutoScalingGroupName: !Sub alb-${EnvironmentName}-asg
+      LaunchTemplate:
+        LaunchTemplateId: !Ref ECSLaunchTemplateConfig
+        Version: !GetAtt ECSLaunchTemplateConfig.LatestVersionNumber
+      MaxSize: !Ref ClusterSize
+      MinSize: !Ref ClusterSize
+      DesiredCapacity: !Ref ClusterSize
+      VPCZoneIdentifier: !Ref Subnets
+      TargetGroupARNs:
+        - !Ref InstanceTargetGroupArn
+      #  - !Ref ContainerTargetGroupArn
+      HealthCheckType: ELB
+      HealthCheckGracePeriod: 300
+
+
+  DefaultTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub tg-${EnvironmentName}-alb-http-80
+      VpcId: !Ref VPC
+      Port: 80
+      Protocol: HTTP
+      TargetType: instance
+      HealthCheckPath: /
+
+  # This IAM Role is attached to all of the ECS hosts. It is based on the default role
+  # published here:
+  # http://docs.aws.amazon.com/AmazonECS/latest/developerguide/instance_IAM_role.html
+  #
+  # You can add other IAM policy statements here to allow access from your ECS hosts
+  # to other AWS services. Please note that this role will be used by ALL containers
+  # running on the ECS host.
+  ECSRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${EnvironmentName}-ECSRole-${AWS::Region}
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          Action:
+            - "sts:AssumeRole"
+          Effect: Allow
+          Principal:
+            Service:
+              - ec2.amazonaws.com
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+        - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role
+
+  ECSInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref ECSRole
+
+
+Outputs:
+
+
+  ECSAutoScalingGroupName:
+    Description: A reference to ECS AutoScaling Group Name
+    Value: !Ref ECSAutoScalingGroup
