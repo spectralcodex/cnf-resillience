@@ -20,8 +20,6 @@ Parameters:
     Type: Number
     Default: 1
 
-
-
   Subnets:
     Description: Choose which subnets this ECS cluster should be deployed to
     Type: List<AWS::EC2::Subnet::Id>

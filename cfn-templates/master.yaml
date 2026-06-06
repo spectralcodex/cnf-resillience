@@ -31,11 +31,11 @@ Resources:
       TemplateURL: !Sub ${TemplateUrlBase}/stacks/vpc.yaml
       Parameters:
         EnvironmentName: !Ref AWS::StackName
-        VpcCIDR: 10.0.0.0/20
-        PublicSubnet1CIDR: 10.0.0.0/24
-        PublicSubnet2CIDR: 10.0.1.0/24
-        PrivateSubnet1CIDR: 10.0.8.0/24
-        PrivateSubnet2CIDR: 10.0.9.0/24
+        VpcCIDR: 192.168.0.0/20
+        PublicSubnet1CIDR: 192.168.0.0/24
+        PublicSubnet2CIDR: 192.168.1.0/24
+        PrivateSubnet1CIDR: 192.168.8.0/24
+        PrivateSubnet2CIDR: 192.168.9.0/24
         DeployToEnvironment: !Ref Environment
 
   SecurityGroups:
