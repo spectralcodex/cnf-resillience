@@ -46,18 +46,7 @@ Resources:
         EnvironmentName: !Ref AWS::StackName
         VPC: !GetAtt VPC.Outputs.VPC
 
-  ASG:
-    Type: AWS::CloudFormation::Stack
-    Properties:
-      TemplateURL: !Sub ${TemplateUrlBase}/stacks/asg.yaml
-      Parameters:
-        EnvironmentName: !Ref AWS::StackName
-        VPC: !GetAtt VPC.Outputs.VPC
-        InstanceType: t3.small
-        ClusterSize: 1
-        InstanceSecurityGroup: !GetAtt SecurityGroups.Outputs.ECSHostSecurityGroup
-        Subnets: !GetAtt VPC.Outputs.PrivateSubnets
-        InstanceTargetGroupArn: !GetAtt ALB.Outputs.InstanceTargetGroupArn
+
 
   ALB:
     Type: AWS::CloudFormation::Stack
@@ -68,6 +57,21 @@ Resources:
         VPC: !GetAtt VPC.Outputs.VPC
         Subnets: !GetAtt VPC.Outputs.PublicSubnets
         SecurityGroup: !GetAtt SecurityGroups.Outputs.LoadBalancerSecurityGroup
+
+  ASG:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub ${TemplateUrlBase}/stacks/asg.yaml
+      Parameters:
+        EnvironmentName: !Ref AWS::StackName
+        # VPC: !GetAtt VPC.Outputs.VPC
+        InstanceType: t3.small
+        ClusterSize: 1
+        InstanceSecurityGroup: !GetAtt SecurityGroups.Outputs.ECSHostSecurityGroup
+        Subnets: !GetAtt VPC.Outputs.PrivateSubnets
+        InstanceTargetGroupArn: !GetAtt ALB.Outputs.InstanceTargetGroupArn
+
+
 
   #ECS:
   #  Type: AWS::CloudFormation::Stack
