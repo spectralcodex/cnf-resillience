@@ -37,9 +37,9 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
     Default: /aws/service/ecs/optimized-ami/amazon-linux-2023/recommended/image_id
 
-  #InstanceTargetGroupArn:
-  #  Description: LoadBalancer Target Group for instance
-   # Type: String
+  InstanceTargetGroupArn:
+    Description: LoadBalancer Target Group for instance
+    Type: String
 
   #ContainerTargetGroupArn:
   #  Description: LoadBalancer Target Group for containers
@@ -94,21 +94,13 @@ Resources:
       DesiredCapacity: !Ref ClusterSize
       VPCZoneIdentifier: !Ref Subnets
       TargetGroupARNs:
-        - !Ref DefaultTargetGroup
+        - !Ref InstanceTargetGroupArn
       #  - !Ref ContainerTargetGroupArn
       HealthCheckType: ELB
       HealthCheckGracePeriod: 300
 
 
-  DefaultTargetGroup:
-    Type: AWS::ElasticLoadBalancingV2::TargetGroup
-    Properties:
-      Name: !Sub tg-${EnvironmentName}-alb-http-80
-      VpcId: !Ref VPC
-      Port: 80
-      Protocol: HTTP
-      TargetType: instance
-      HealthCheckPath: /
+
 
   # This IAM Role is attached to all of the ECS hosts. It is based on the default role
   # published here:

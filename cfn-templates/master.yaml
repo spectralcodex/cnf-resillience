@@ -57,7 +57,7 @@ Resources:
         ClusterSize: 1
         InstanceSecurityGroup: !GetAtt SecurityGroups.Outputs.ECSHostSecurityGroup
         Subnets: !GetAtt VPC.Outputs.PrivateSubnets
-        #InstanceTargetGroupArn: !GetAtt ALB.Outputs.InstanceTargetGroupArn
+        InstanceTargetGroupArn: !GetAtt ALB.Outputs.InstanceTargetGroupArn
 
   ALB:
     Type: AWS::CloudFormation::Stack
