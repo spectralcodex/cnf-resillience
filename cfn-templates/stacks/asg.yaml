@@ -39,9 +39,9 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
     Default: /aws/service/ecs/optimized-ami/amazon-linux-2023/recommended/image_id
 
-  InstanceTargetGroupArn:
-    Description: LoadBalancer Target Group for instance
-    Type: String
+  #InstanceTargetGroupArn:
+  #  Description: LoadBalancer Target Group for instance
+   # Type: String
 
   #ContainerTargetGroupArn:
   #  Description: LoadBalancer Target Group for containers
@@ -96,7 +96,7 @@ Resources:
       DesiredCapacity: !Ref ClusterSize
       VPCZoneIdentifier: !Ref Subnets
       TargetGroupARNs:
-        - !Ref InstanceTargetGroupArn
+        - !Ref DefaultTargetGroup
       #  - !Ref ContainerTargetGroupArn
       HealthCheckType: ELB
       HealthCheckGracePeriod: 300
