@@ -52,7 +52,7 @@ Resources:
       TemplateURL: !Sub ${TemplateUrlBase}/stacks/asg.yaml
       Parameters:
         EnvironmentName: !Ref AWS::StackName
-        VPC: !Ref VPC
+        VPC: !GetAtt VPC.Outputs.VPC
         InstanceType: t3.small
         ClusterSize: 1
         InstanceSecurityGroup: !GetAtt SecurityGroups.Outputs.ECSHostSecurityGroup
