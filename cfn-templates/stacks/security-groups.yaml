@@ -28,7 +28,9 @@ Resources:
         - IpProtocol: tcp
           FromPort: 80
           ToPort: 80
-          SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup # <--- Points directly to the ALB's SG
+          CidrIp: 0.0.0.0/0
+
+          #SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup # <--- Points directly to the ALB's SG
 
       Tags:
         - Key: Name

@@ -6,8 +6,6 @@ Parameters:
     Description: An environment name that will be prefixed to resource names
     Type: String
 
-
-
   InstanceType:
     Description: Amazon EC2 instance type for the instances
     Type: String
