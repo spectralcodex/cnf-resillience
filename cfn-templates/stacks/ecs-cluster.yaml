@@ -37,7 +37,7 @@ Parameters:
   LatestAmiId:
     Description: ECS-Optimized AMI ID
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
-    Default: /aws/service/ecs/optimized-ami/amazon-linux-2023/recommended/image_id
+    Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64
 
   InstanceTargetGroupArn:
     Description: LoadBalancer Target Group for instance
@@ -46,9 +46,6 @@ Parameters:
   ContainerTargetGroupArn:
     Description: LoadBalancer Target Group for containers
     Type: String
-
-
-
 
 
 Resources:
@@ -62,16 +59,17 @@ Resources:
         ImageId: !Ref LatestAmiId
         InstanceType: !Ref InstanceType
         # HERE: Prevent public IP assignment and define interface settings
-          # CORRECTED: Security Group is only specified HERE inside the interface array
+        # CORRECTED: Security Group is only specified HERE inside the interface array
         NetworkInterfaces:
           - DeviceIndex: 0
             AssociatePublicIpAddress: false
             Groups:
               - !Ref InstanceSecurityGroup
+
         IamInstanceProfile:
-            Arn: !GetAtt ECSInstanceProfile.Arn
+          Arn: !GetAtt ECSInstanceProfile.Arn
         #SecurityGroupIds:
-         # - !Ref InstanceSecurityGroup
+        #  - !Ref InstanceSecurityGroup
         UserData:
           "Fn::Base64": !Sub |
             #!/bin/bash
@@ -80,20 +78,18 @@ Resources:
             yum update -y
             curl -O https://s3.us-west-2.amazonaws.com/amazon-ecs-agent-us-west-2/amazon-ecs-init-latest.x86_64.rpm
             yum localinstall -y amazon-ecs-init-latest.x86_64.rpm
-            yum install -y docker
             yum install -y httpd
+            yum install -y docker
             systemctl start docker
             systemctl start httpd
-            systemctl start ecs
             systemctl enable httpd
             systemctl enable docker
             systemctl enable ecs
             echo "ECS_CLUSTER=${ECSCluster}" >> /etc/ecs/ecs.config
-            echo "<h1>Hello World from $(hostname -f)</h1>" > /var/www/html/index.html
+            echo "<h1>Hello World from $(hostname -f) - ${EnvironmentName}</h1>" > /var/www/html/index.html
 
   ECSAutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
-    DependsOn: ECSCluster
     Properties:
       AutoScalingGroupName: !Sub alb-${EnvironmentName}-asg
       LaunchTemplate:
@@ -110,7 +106,6 @@ Resources:
       HealthCheckGracePeriod: 300
 
 
-
   ECSCluster:
     Type: AWS::ECS::Cluster
     Properties:
@@ -118,9 +113,6 @@ Resources:
       Tags:
         - Key: Name
           Value: !Ref EnvironmentName
-
-
-
 
 
   ECSCloudWatchParameter:

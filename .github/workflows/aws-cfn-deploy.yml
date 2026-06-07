@@ -150,7 +150,7 @@ jobs:
       - name: Deploy CloudFormation Stack
         uses: aws-actions/aws-cloudformation-github-deploy@v2.0.0
         with:
-          name: Deploy${{ matrix.env }}Stack
+          name: App${{ matrix.env }}Stack
           template: https://${{ env.BUCKET_NAME }}.s3.${{ env.AWS_REGION }}.amazonaws.com/templates/master.yaml
 
           parameter-overrides: Environment=${{ matrix.env }}
