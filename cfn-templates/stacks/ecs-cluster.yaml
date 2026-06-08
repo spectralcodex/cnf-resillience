@@ -99,9 +99,11 @@ Resources:
       MinSize: !Ref ClusterSize
       DesiredCapacity: !Ref ClusterSize
       VPCZoneIdentifier: !Ref Subnets
+      # REQUIRED for Managed Termination Protection on Capacity Providers:
+      NewInstancesProtectedFromScaleIn: true
       TargetGroupARNs:
         - !Ref InstanceTargetGroupArn
-       # - !Ref ContainerTargetGroupArn
+        # - !Ref ContainerTargetGroupArn
       HealthCheckType: ELB
       HealthCheckGracePeriod: 300
 
@@ -114,6 +116,31 @@ Resources:
         - Key: Name
           Value: !Ref EnvironmentName
 
+  # 2. The ECS Capacity Provider linking the ASG
+  EcsCapacityProvider:
+    Type: AWS::ECS::CapacityProvider
+    Properties:
+      Name: !Sub ${EnvironmentName}-capacity-provider
+      AutoScalingGroupProvider:
+        AutoScalingGroupArn: !Ref ECSAutoScalingGroup
+        ManagedTerminationProtection: ENABLED # Requires ASG to have Termination Protection turned on
+        ManagedScaling:
+          Status: ENABLED
+          TargetCapacity: 80 # Targets 80% aggregate CPU/Memory utilization across the cluster
+          MinimumScalingStepSize: 1
+          MaximumScalingStepSize: 2
+
+    # 3. Associating the Capacity Provider with the Cluster
+  ClusterCapacityProviderAssociation:
+    Type: AWS::ECS::ClusterCapacityProviderAssociations
+    Properties:
+      Cluster: !Ref ECSCluster
+      CapacityProviders:
+        - !Ref EcsCapacityProvider
+      DefaultCapacityProviderStrategy:
+        - CapacityProvider: !Ref EcsCapacityProvider
+          Weight: 1
+          Base: 0
 
   ECSCloudWatchParameter:
     Type: AWS::SSM::Parameter
