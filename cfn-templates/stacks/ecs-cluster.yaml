@@ -43,9 +43,9 @@ Parameters:
     Description: LoadBalancer Target Group for instance
     Type: String
 
-  ContainerTargetGroupArn:
-    Description: LoadBalancer Target Group for containers
-    Type: String
+  #ContainerTargetGroupArn:
+  #  Description: LoadBalancer Target Group for containers
+  #  Type: String
 
 
 Resources:
@@ -86,7 +86,7 @@ Resources:
             systemctl enable docker
             systemctl enable ecs
             echo "ECS_CLUSTER=${ECSCluster}" >> /etc/ecs/ecs.config
-            echo "<h1>Hello World from $(hostname -f) - ${EnvironmentName}</h1>" > /var/www/html/index.html
+            echo "<h1>Hello World from $(hostname -f) </h1>" > /var/www/html/index.html
 
   ECSAutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
@@ -101,7 +101,7 @@ Resources:
       VPCZoneIdentifier: !Ref Subnets
       TargetGroupARNs:
         - !Ref InstanceTargetGroupArn
-        - !Ref ContainerTargetGroupArn
+       # - !Ref ContainerTargetGroupArn
       HealthCheckType: ELB
       HealthCheckGracePeriod: 300
 
