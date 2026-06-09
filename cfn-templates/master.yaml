@@ -58,18 +58,18 @@ Resources:
         Subnets: !GetAtt VPC.Outputs.PublicSubnets
         SecurityGroup: !GetAtt SecurityGroups.Outputs.LoadBalancerSecurityGroup
 
-  #ASG:
-  #  Type: AWS::CloudFormation::Stack
-  #  Properties:
-  #    TemplateURL: !Sub ${TemplateUrlBase}/stacks/asg.yaml
-  #    Parameters:
-  #      EnvironmentName: !Ref AWS::StackName
+        #ASG:
+        #  Type: AWS::CloudFormation::Stack
+        #  Properties:
+        #    TemplateURL: !Sub ${TemplateUrlBase}/stacks/asg.yaml
+        #    Parameters:
+        #      EnvironmentName: !Ref AWS::StackName
         # VPC: !GetAtt VPC.Outputs.VPC
-  #      InstanceType: t3.small
-  #      ClusterSize: 1
-  #      InstanceSecurityGroup: !GetAtt SecurityGroups.Outputs.ECSHostSecurityGroup
-   #     Subnets: !GetAtt VPC.Outputs.PrivateSubnets
-   #     InstanceTargetGroupArn: !GetAtt ALB.Outputs.InstanceTargetGroupArn
+    #      InstanceType: t3.small
+    #      ClusterSize: 1
+    #      InstanceSecurityGroup: !GetAtt SecurityGroups.Outputs.ECSHostSecurityGroup
+    #     Subnets: !GetAtt VPC.Outputs.PrivateSubnets
+    #     InstanceTargetGroupArn: !GetAtt ALB.Outputs.InstanceTargetGroupArn
 
 
 
@@ -86,7 +86,16 @@ Resources:
         InstanceTargetGroupArn: !GetAtt ALB.Outputs.InstanceTargetGroupArn
         #ContainerTargetGroupArn: !GetAtt ALB.Outputs.ContainerTargetGroupArn
 
-
+  AppService:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub ${TemplateUrlBase}/services/service.yaml
+      Parameters:
+        VPC: !GetAtt VPC.Outputs.VPC
+        Cluster: !GetAtt ECS.Outputs.Cluster
+        DesiredCount: 1
+        Listener: !GetAtt ALB.Outputs.Listener
+        Path: /api
 
 Outputs:
   VPC:

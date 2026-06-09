@@ -31,8 +31,8 @@ Parameters:
   LatestAmiId:
     Description: ECS-Optimized AMI ID
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
-  #  Default: /aws/service/ecs/optimized-ami/amazon-linux-2023/recommended/image_id
-    Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64
+  #  Default: /aws/services/ecs/optimized-ami/amazon-linux-2023/recommended/image_id
+    Default: /aws/services/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64
 
   InstanceTargetGroupArn:
     Description: LoadBalancer Target Group for instance
@@ -130,7 +130,7 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
         - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
-        - arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role
+        - arn:aws:iam::aws:policy/services-role/AmazonEC2ContainerServiceforEC2Role
 
   ECSInstanceProfile:
     Type: AWS::IAM::InstanceProfile

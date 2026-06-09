@@ -160,4 +160,4 @@ jobs:
 
       - name: Wait for Stack Completion
         run: |
-          aws cloudformation wait stack-create-complete --stack-name Deploy${{ matrix.env }}Stack
+          aws cloudformation wait stack-create-complete --stack-name App${{ matrix.env }}Stack

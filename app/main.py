@@ -1,12 +1,29 @@
-from fastapi import FastAPI
-from fastapi.responses import JSONResponse
-from fastapi.encoders import jsonable_encoder
+from fastapi import Depends, FastAPI
 
-app = FastAPI()
+from .dependencies import get_token_header, get_query_token
+from .internal import admin
+from .routers import items, users
+from .routers import testpydn
+
+app = FastAPI(dependencies=[Depends(get_query_token)])
+
+app.include_router(testpydn.router)
+app.include_router(items.router)
+app.include_router(users.router)
+app.include_router(
+    admin.router,
+    prefix="/admin",
+    tags=["admin"],
+    dependencies=[Depends(get_token_header)],
+    responses={418: {"description": "I am a teapot"}},
+)
 
 
 @app.get("/")
 async def root():
-    return JSONResponse(
-        content=jsonable_encoder({"message": "Hello Bigger Applications!"})
-    )
+    return {"message": "Hello Bigger Applications!"}
+
+
+@app.post("/endpoint")
+def ping(data: dict):
+    return {"message": "Success", "data": data}
