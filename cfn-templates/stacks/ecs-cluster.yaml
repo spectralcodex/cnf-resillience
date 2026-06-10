@@ -37,7 +37,7 @@ Parameters:
   LatestAmiId:
     Description: ECS-Optimized AMI ID
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
-    Default: ami-0150189e4c09ffab5
+    Default: /aws/service/ecs/optimized-ami/amazon-linux-2/recommended/image_id
 
 
   InstanceTargetGroupArn:
